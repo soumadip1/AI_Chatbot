@@ -67,7 +67,7 @@ def get_coordinates(city: str):
     """Convert city name to latitude and longitude using OpenStreetMap Nominatim"""
     url = f"https://nominatim.openstreetmap.org/search?q={city}&format=json&limit=1"
     try:
-        res = requests.get(url).json()
+        res = requests.get(url, headers={"User-Agent": "streamlit-weather-app"}).json()
         st.write("DEBUG: nominatim response:", res)
         if res:
             lat = float(res[0]["lat"])
@@ -76,7 +76,9 @@ def get_coordinates(city: str):
         else:
             return None, None
     except Exception as e:
+        print("DEBUG: Geocoding error:", e)
         return None, None
+
 
 #Fetch weather from Open‑Meteo using latitude and logitude co-ordinates
 def get_weather(city: str):
