@@ -168,8 +168,8 @@ if prompt := st.chat_input("What is on your mind?"):
         else:
             search_results = web_search(prompt)
             context_msgs.append({
-                                "role": "system"
-                                , "content": f"Search results:\n{search_results}"
+                                 "role": "assistant"
+                                 , "content": f"Here are the latest headlines:\n{search_results}"
                                 }
                             )
 
