@@ -68,6 +68,7 @@ def get_coordinates(city: str):
     url = f"https://nominatim.openstreetmap.org/search?q={city}&format=json&limit=1"
     try:
         res = requests.get(url).json()
+        print("DEBUG: nominatim response:", res)
         if res:
             lat = float(res[0]["lat"])
             lon = float(res[0]["lon"])
@@ -81,12 +82,14 @@ def get_coordinates(city: str):
 def get_weather(city: str):
     """Fetch current weather for a city using Open-Meteo"""
     lat, lon = get_coordinates(city)
+    print("DEBUG: Coordinates for", city, "=>", lat, lon)
     if not lat or not lon:
         return f"Could not determine coordinates for {city}."
     
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
     try:
         res = requests.get(url).json()
+        print("DEBUG: open-meteo response:", res)
         current = res.get("current_weather", {})
         if not current:
             return f"No weather data available for {city}."
