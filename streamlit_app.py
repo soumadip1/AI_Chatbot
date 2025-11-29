@@ -1,12 +1,14 @@
 import streamlit as st
 from openai import OpenAI
+from datetime import datetime
+import requests
 
 # --- Login Logic ---
 if "user_name" not in st.session_state:
     st.session_state.user_name = None
 
 if not st.session_state.user_name:
-    st.title("👋 Welcome")
+    st.title("👋 Soumadip welcomes you 👋")
     name_input = st.text_input("Please enter your name to login:")
     
     if st.button("Join Chat"):
@@ -20,6 +22,44 @@ if not st.session_state.user_name:
 st.title("🤖 GPT-5 Nano Chatbot")
 st.success(f"Thanks {st.session_state.user_name} for joining!")
 st.caption("Powered by OpenAI's gpt-5-nano model")
+
+#Function to get current date and time
+def get_current_time():
+    return datetime.now().strftime("%A, %d %B %Y, %H:%M")
+
+#Function to get current location
+def get_user_location():
+    try:
+        res = requests.get("https://ipinfo.io/json").json()
+        return res.get("city", "Unknown")
+    except:
+        return "Unknown"
+    
+def web_search(query: str):
+    """Use Serpex.dev Search API"""
+    api_key = st.secrets["SERPEX_KEY"]
+    endpoint = "https://api.serpex.dev/search"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {"q": query, "num": 3}
+    response = requests.get(endpoint, headers=headers, params=params)
+    data = response.json()
+    results = []
+    for item in data.get("results", []):
+        title = item.get("title", "")
+        snippet = item.get("snippet", "")
+        results.append(f"{title}: {snippet}")
+    return "\n".join(results) if results else "No results found."
+
+def needs_search(prompt: str) -> bool:
+    keywords = ["news", "headline", "weather", "latest", "current", "today"]
+    return any(word in prompt.lower() for word in keywords)
+
+#Add current time in context
+st.session_state.current_time = get_current_time()
+
+#Add current location in context
+st.session_state.location = get_user_location()
+
 
 # Ask user for their OpenAI API key via `st.text_input`.
 # Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
@@ -44,22 +84,41 @@ for message in st.session_state.messages:
 
 # Create a chat input field to allow the user to enter a message. This will display
 # automatically at the bottom of the page.
-if prompt := st.chat_input("What is up?"):
+if prompt := st.chat_input("What is on your mind?"):
 
     # Store and display the current prompt.
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # New: Build enriched context with time, location, and search results
+    context_msgs = [
+        {"role": "system", "content": f"The current time is {st.session_state.current_time}."},
+        {"role": "system", "content": f"The user is located in {st.session_state.location}."}
+    ]
+
+    if needs_search(prompt):
+        search_results = web_search(prompt)
+        context_msgs.append({
+                             "role": "system"
+                             , "content": f"Search results:\n{search_results}"
+                            }
+                           )
+
+    # New: Combine context with chat history
+    api_messages = context_msgs \
+                   + [ 
+                       {"role": m["role"], "content": m["content"]}
+                          for m in st.session_state.messages
+                     ]        
+
     # Generate a response using the OpenAI API.
+    # Add current context to message
     stream = client.chat.completions.create(
-        model="gpt-5-nano",
-        messages=[
-            {"role": m["role"], "content": m["content"]}
-            for m in st.session_state.messages
-        ],
-        stream=True,
-    )
+                                             model="gpt-5-nano",
+                                             messages=api_messages,
+                                             stream=True,
+                                            )
 
     # Stream the response to the chat using `st.write_stream`, then store it in 
     # session state.
