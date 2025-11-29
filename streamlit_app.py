@@ -2,10 +2,6 @@ import streamlit as st
 from openai import OpenAI
 from datetime import datetime
 import requests
-from serpex import SerpexClient
-
-# Initialize the client
-client = SerpexClient('YOUR_API_KEY')
 
 # --- Login Logic ---
 if "user_name" not in st.session_state:
@@ -49,12 +45,20 @@ def get_user_location():
     
 def web_search(query: str):
     """Use Serpex.dev Search API"""
-    client = SerpexClient(st.secrets["SERPEX_KEY"])
+    url = "https://api.serpex.dev/api/search"
+    serpex_api_key = st.secrets["SERPEX_KEY"]
 
-    data = client.search({
-        'q': f'{query}',
-        'engine': 'auto'  # Available: auto, google, bing, duckduckgo, brave, yahoo, yandex
-    })
+    headers = {
+               "Authorization": f"Bearer {serpex_api_key}"
+              }
+    
+    params = {
+              "q": f"{query}",
+              "engine": "auto"
+             }
+
+    response = requests.get(url, headers=headers, params=params)
+    data = response.json()
 
     results = []
     for item in data.get("results", []):
