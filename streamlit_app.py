@@ -10,13 +10,21 @@ if "user_name" not in st.session_state:
 if not st.session_state.user_name:
     st.title("👋 Soumadip welcomes you 👋")
     name_input = st.text_input("Please enter your name to login:")
+    location_input = st.text_input("Enter your city (e.g., Amsterdam):")
     
     if st.button("Join Chat"):
-        if name_input.strip():
-            st.session_state.user_name = name_input
-            st.rerun()
-        else:
+        #Check if name is empty
+        if not name_input.strip():
             st.warning("Name cannot be empty.")
+        #Check if location is empty
+        elif not location_input.strip(): 
+            st.warning("Location cannot be empty.")
+        #Set both name and location
+        else:
+            st.session_state.user_name = name_input.strip()
+            st.session_state.location = location_input.strip()
+            st.rerun()
+
     st.stop()  # Stop the app here until the user logs in
 
 st.title("🤖 GPT-5 Nano Chatbot")
@@ -27,7 +35,7 @@ st.caption("Powered by OpenAI's gpt-5-nano model")
 def get_current_time():
     return datetime.now().strftime("%A, %d %B %Y, %H:%M")
 
-#Function to get current location
+#Function to get current server location
 def get_user_location():
     try:
         res = requests.get("https://ipinfo.io/json").json()
@@ -56,10 +64,6 @@ def needs_search(prompt: str) -> bool:
 
 #Add current time in context
 st.session_state.current_time = get_current_time()
-
-#Add current location in context
-st.session_state.location = get_user_location()
-
 
 # Ask user for their OpenAI API key via `st.text_input`.
 # Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
