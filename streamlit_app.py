@@ -68,7 +68,6 @@ def get_coordinates(city: str):
     url = f"https://nominatim.openstreetmap.org/search?q={city}&format=json&limit=1"
     try:
         res = requests.get(url, headers={"User-Agent": "streamlit-weather-app"}).json()
-        st.write("DEBUG: nominatim response:", res)
         if res:
             lat = float(res[0]["lat"])
             lon = float(res[0]["lon"])
@@ -79,19 +78,16 @@ def get_coordinates(city: str):
         print("DEBUG: Geocoding error:", e)
         return None, None
 
-
 #Fetch weather from Open‑Meteo using latitude and logitude co-ordinates
 def get_weather(city: str):
     """Fetch current weather for a city using Open-Meteo"""
     lat, lon = get_coordinates(city)
-    st.write("DEBUG: Coordinates for", city, "=>", lat, lon)
     if not lat or not lon:
         return f"Could not determine coordinates for {city}."
     
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
     try:
         res = requests.get(url).json()
-        st.write("DEBUG: open-meteo response:", res)
         current = res.get("current_weather", {})
         if not current:
             return f"No weather data available for {city}."
@@ -100,7 +96,6 @@ def get_weather(city: str):
         return f"The current weather in {city} is {temp}°C with wind speed {wind} km/h."
     except Exception as e:
         return f"Weather error: {e}"
-
 
 #Add current time in context
 st.session_state.current_time = get_current_time()
