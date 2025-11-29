@@ -44,6 +44,7 @@ def get_user_location():
         return "Unknown"
     
 def web_search(query: str):
+    st.write("****************** Inside web search *******************")
     """Use Serpex.dev Search API"""
     url = "https://api.serpex.dev/api/search"
     serpex_api_key = st.secrets["SERPEX_KEY"]
@@ -59,6 +60,7 @@ def web_search(query: str):
 
     response = requests.get(url, headers=headers, params=params)
     data = response.json()
+    st.write(data)
 
     results = []
     for item in data.get("results", []):
