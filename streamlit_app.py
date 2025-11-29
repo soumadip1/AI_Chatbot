@@ -62,6 +62,41 @@ def needs_search(prompt: str) -> bool:
     keywords = ["news", "headline", "weather", "latest", "current", "today"]
     return any(word in prompt.lower() for word in keywords)
 
+#Fetch co-ordinates from city name
+def get_coordinates(city: str):
+    """Convert city name to latitude and longitude using OpenStreetMap Nominatim"""
+    url = f"https://nominatim.openstreetmap.org/search?city={city}&format=json&limit=1"
+    try:
+        res = requests.get(url).json()
+        if res:
+            lat = float(res[0]["lat"])
+            lon = float(res[0]["lon"])
+            return lat, lon
+        else:
+            return None, None
+    except Exception as e:
+        return None, None
+
+#Fetch weather from Open‑Meteo using latitude and logitude co-ordinates
+def get_weather(city: str):
+    """Fetch current weather for a city using Open-Meteo"""
+    lat, lon = get_coordinates(city)
+    if not lat or not lon:
+        return f"Could not determine coordinates for {city}."
+    
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+    try:
+        res = requests.get(url).json()
+        current = res.get("current_weather", {})
+        if not current:
+            return f"No weather data available for {city}."
+        temp = current.get("temperature")
+        wind = current.get("windspeed")
+        return f"The current weather in {city} is {temp}°C with wind speed {wind} km/h."
+    except Exception as e:
+        return f"Weather error: {e}"
+
+
 #Add current time in context
 st.session_state.current_time = get_current_time()
 
@@ -102,12 +137,16 @@ if prompt := st.chat_input("What is on your mind?"):
     ]
 
     if needs_search(prompt):
-        search_results = web_search(prompt)
-        context_msgs.append({
-                             "role": "system"
-                             , "content": f"Search results:\n{search_results}"
-                            }
-                           )
+        if "weather" in prompt.lower():
+            weather_info = get_weather(st.session_state.location) 
+            context_msgs.append({"role": "system", "content": weather_info})
+        else:
+            search_results = web_search(prompt)
+            context_msgs.append({
+                                "role": "system"
+                                , "content": f"Search results:\n{search_results}"
+                                }
+                            )
 
     # New: Combine context with chat history
     api_messages = context_msgs \
