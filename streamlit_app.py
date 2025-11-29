@@ -65,7 +65,6 @@ def web_search(query: str):
 
     response = requests.get(url, headers=headers, params=params)
     data = response.json()
-    st.write(data)
 
     results = []
     for item in data.get("results", []):
@@ -80,6 +79,8 @@ def web_search(query: str):
             False
         else:
             results.append(f"{title}: {snippet}")
+
+    st.write("\n".join(results) if results else "No results found.")
     return "\n".join(results) if results else "No results found."
 
 def needs_search(prompt: str) -> bool:
