@@ -65,7 +65,7 @@ def needs_search(prompt: str) -> bool:
 #Fetch co-ordinates from city name
 def get_coordinates(city: str):
     """Convert city name to latitude and longitude using OpenStreetMap Nominatim"""
-    url = f"https://nominatim.openstreetmap.org/search?city={city}&format=json&limit=1"
+    url = f"https://nominatim.openstreetmap.org/search?q={city}&format=json&limit=1"
     try:
         res = requests.get(url).json()
         if res:
