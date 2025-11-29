@@ -17,9 +17,9 @@ if not st.session_state.user_name:
             st.warning("Name cannot be empty.")
     st.stop()  # Stop the app here until the user logs in
 
-st.title("🤖 GPT-5 Mini Chatbot")
+st.title("🤖 GPT-5 Nano Chatbot")
 st.success(f"Thanks {st.session_state.user_name} for joining!")
-st.caption("Powered by OpenAI's gpt-5-mini model")
+st.caption("Powered by OpenAI's gpt-5-nano model")
 
 # Ask user for their OpenAI API key via `st.text_input`.
 # Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
@@ -53,7 +53,7 @@ if prompt := st.chat_input("What is up?"):
 
     # Generate a response using the OpenAI API.
     stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-5-nano",
         messages=[
             {"role": m["role"], "content": m["content"]}
             for m in st.session_state.messages
