@@ -42,17 +42,22 @@ def get_user_location():
         return res.get("city", "Unknown")
     except:
         return "Unknown"
-    
+
+#Function to call Serpex.dev Search API for news    
 def web_search(query: str):
     st.write("****************** Inside web search *******************")
     """Use Serpex.dev Search API"""
     url = "https://api.serpex.dev/api/search"
+    
+    #Get the API Key from secrets
     serpex_api_key = st.secrets["SERPEX_KEY"]
 
+    #Add header information with the API key
     headers = {
                "Authorization": f"Bearer {serpex_api_key}"
               }
     
+    #Pass the query parameters
     params = {
               "q": f"{query}",
               "engine": "auto"
@@ -64,9 +69,17 @@ def web_search(query: str):
 
     results = []
     for item in data.get("results", []):
+        #Get the title information
         title = item.get("title", "")
-        snippet = item.get("snippet", "")
-        results.append(f"{title}: {snippet}")
+        
+        #Get the snippet or description or content from the response
+        snippet = item.get("snippet") or item.get("description") or item.get("content") or ""
+        
+        #Only append the relevant results when snippet is not blank
+        if snippet =="" or snippet is None:
+            False
+        else:
+            results.append(f"{title}: {snippet}")
     return "\n".join(results) if results else "No results found."
 
 def needs_search(prompt: str) -> bool:
